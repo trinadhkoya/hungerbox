@@ -504,7 +504,9 @@
 
       hint.className = 'pin-hint ok';
       hint.textContent = '✓ Valid PIN';
-      activeQRCanvas = buildQRCanvas(pin);
+      // Encode the page URL + PIN so scanning opens this page and auto-downloads
+      const shareURL = `${location.origin}${location.pathname}?pin=${pin}`;
+      activeQRCanvas = buildQRCanvas(shareURL);
       showCard(pin);
     }
 
@@ -679,6 +681,42 @@
       clearTimeout(debounce);
       debounce = setTimeout(refresh, 120);
     });
+
+    // ── Auto-download when opened via scanned QR (?pin=XXXXXX) ───────────────
+    (function handleScanLanding() {
+      const params = new URLSearchParams(location.search);
+      const pin = params.get('pin');
+      if (!pin || !/^\d{6}$/.test(pin)) return;
+
+      // Pre-fill the input and generate the QR
+      pinEl.value = pin;
+      refresh();
+
+      // Show a banner so the user knows a download is starting
+      const banner = document.createElement('div');
+      banner.id = 'dl-banner';
+      banner.style.cssText = `
+        position:fixed; top:60px; left:0; right:0; z-index:99;
+        background:#3a1593; color:#fff;
+        font-family:'Ubuntu',sans-serif; font-size:13.5px;
+        display:flex; align-items:center; justify-content:center; gap:10px;
+        padding:11px 16px; text-align:center;
+      `;
+      banner.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M8 2v8m0 0L5 7m3 3 3-3M2 13h12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Saving QR to your device…
+        <button onclick="document.getElementById('dl-banner').remove()" style="background:none;border:none;color:#fff;opacity:0.7;cursor:pointer;font-size:16px;line-height:1;padding:0 4px;">✕</button>
+      `;
+      document.body.appendChild(banner);
+
+      // Trigger download after a short delay (let canvas render)
+      setTimeout(() => {
+        dlBtn.click();
+        setTimeout(() => banner.remove(), 3000);
+      }, 600);
+    })();
 
   </script>
 </body>
