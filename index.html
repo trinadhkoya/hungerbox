@@ -307,21 +307,6 @@
         <div class="pin-hint" id="pin-hint"></div>
       </div>
 
-      <div class="form-group full">
-        <label>Order Ref.</label>
-        <input id="ref" type="text" placeholder="e.g. VVUILCIV28829" autocomplete="off" />
-      </div>
-
-      <div class="form-group">
-        <label>KOT No.</label>
-        <input id="kot" type="text" inputmode="numeric" placeholder="e.g. 373" autocomplete="off" />
-      </div>
-
-      <div class="form-group">
-        <label>Items Ready</label>
-        <input id="items" type="text" inputmode="numeric" placeholder="e.g. 1" value="1" autocomplete="off" />
-      </div>
-
     </div>
   </div>
 
@@ -361,9 +346,6 @@
   <script src="qrcode.min.js"></script>
   <script>
     const pinEl   = document.getElementById('pin');
-    const refEl   = document.getElementById('ref');
-    const kotEl   = document.getElementById('kot');
-    const itemsEl = document.getElementById('items');
     const hint    = document.getElementById('pin-hint');
     const card    = document.getElementById('hb-card');
     const dlBtn   = document.getElementById('dl-btn');
@@ -401,10 +383,7 @@
     }
 
     function refresh() {
-      const pin   = pinEl.value.replace(/\D/g,'').slice(0,6);
-      const ref   = refEl.value.trim().toUpperCase() || '—';
-      const kot   = kotEl.value.trim() || '—';
-      const items = Math.max(1, parseInt(itemsEl.value) || 1);
+      const pin = pinEl.value.replace(/\D/g,'').slice(0,6);
 
       if (pin.length < 6) {
         hint.className = 'pin-hint';
@@ -417,9 +396,8 @@
 
       hint.className = 'pin-hint ok';
       hint.textContent = '✓ Valid PIN';
-      genTime = fmt12h();
       activeQRCanvas = buildQRCanvas(pin);
-      showCard(pin, ref, kot, items);
+      showCard(pin);
     }
 
     function showEmpty() {
@@ -444,7 +422,7 @@
         </div>`;
     }
 
-    function showCard(pin, ref, kot, items) {
+    function showCard(pin) {
       // Resize QR canvas for display
       activeQRCanvas.style.width  = '180px';
       activeQRCanvas.style.height = '180px';
@@ -475,20 +453,8 @@
         `<div class="hb-pin">Order Pin: <strong>${pin}</strong></div>`);
       card.appendChild(qrWrap);
 
-      // Meta + items + footer
+      // Footer
       card.insertAdjacentHTML('beforeend', `
-        <div class="hb-divider"></div>
-        <div class="hb-meta">
-          <div class="hb-ref-block">
-            <strong>Order Ref.: ${ref}</strong>
-            <span>QR generated at: ${genTime}</span>
-          </div>
-          <div class="hb-kot-block">
-            <span class="kot-label">KOT</span>
-            <span class="kot-num">${kot}</span>
-          </div>
-        </div>
-        <div class="hb-items">${items} item${items!==1?'s':''} is ready to be collected!</div>
         <div class="hb-divider"></div>
         <div class="hb-footer">
           <div class="hb-footer-icon">🍱</div>
@@ -503,10 +469,7 @@
     dlBtn.addEventListener('click', () => {
       if (!activeQRCanvas) return;
 
-      const pin   = pinEl.value.replace(/\D/g,'').slice(0,6);
-      const ref   = refEl.value.trim().toUpperCase() || '—';
-      const kot   = kotEl.value.trim() || '—';
-      const items = Math.max(1, parseInt(itemsEl.value) || 1);
+      const pin = pinEl.value.replace(/\D/g,'').slice(0,6);
 
       const S = 2; // retina scale
       const W = 390;
@@ -515,11 +478,9 @@
       const H_HEAD  = 84;
       const H_DIV   = 1;
       const QR_SZ   = 200;
-      const H_QR    = 28 + QR_SZ + 18 + 28 + 22; // top + qr + gap + pin + bot
-      const H_META  = 84;
-      const H_ITEMS = 44;
+      const H_QR    = 32 + QR_SZ + 18 + 28 + 24; // top + qr + gap + pin + bot
       const H_FOOT  = 54;
-      const H_TOTAL = H_HEAD + H_DIV + H_QR + H_DIV + H_META + H_ITEMS + H_DIV + H_FOOT;
+      const H_TOTAL = H_HEAD + H_DIV + H_QR + H_DIV + H_FOOT;
 
       const c   = document.createElement('canvas');
       c.width   = W * S;
@@ -595,45 +556,6 @@
       ctx.fillRect(0, y, W, 1);
       y += H_DIV;
 
-      // ── Meta ──
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(0, y, W, H_META + H_ITEMS);
-
-      ctx.fillStyle = '#111';
-      ctx.font = `bold 13.5px ${FONT}`;
-      ctx.textAlign = 'left';
-      ctx.fillText(`Order Ref.: ${ref}`, 20, y + 30);
-
-      ctx.fillStyle = '#6b7280';
-      ctx.font = `12px ${FONT}`;
-      ctx.fillText(`QR generated at: ${genTime}`, 20, y + 50);
-
-      // KOT
-      ctx.fillStyle = '#6b7280';
-      ctx.font = `11px ${FONT}`;
-      ctx.textAlign = 'right';
-      ctx.fillText('KOT', W - 20, y + 22);
-
-      ctx.fillStyle = '#1a73e8';
-      ctx.font = `bold 30px ${FONT}`;
-      ctx.textAlign = 'right';
-      ctx.fillText(kot, W - 20, y + 54);
-
-      y += H_META;
-
-      // ── Items ──
-      ctx.fillStyle = '#111';
-      ctx.font = `14px ${FONT}`;
-      ctx.textAlign = 'left';
-      ctx.fillText(`${items} item${items!==1?'s':''} is ready to be collected!`, 20, y + 26);
-
-      y += H_ITEMS;
-
-      // ── Divider ──
-      ctx.fillStyle = '#e5e7eb';
-      ctx.fillRect(0, y, W, 1);
-      y += H_DIV;
-
       // ── Footer ──
       // Orange icon box
       const grad = ctx.createLinearGradient(20, y+12, 50, y+42);
@@ -680,9 +602,6 @@
       debounce = setTimeout(refresh, 120);
     });
 
-    [refEl, kotEl, itemsEl].forEach(el =>
-      el.addEventListener('input', () => { clearTimeout(debounce); debounce = setTimeout(refresh, 120); })
-    );
   </script>
 </body>
 </html>
