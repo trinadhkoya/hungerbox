@@ -453,14 +453,6 @@
         `<div class="hb-pin">Order Pin: <strong>${pin}</strong></div>`);
       card.appendChild(qrWrap);
 
-      // Footer
-      card.insertAdjacentHTML('beforeend', `
-        <div class="hb-divider"></div>
-        <div class="hb-footer">
-          <div class="hb-footer-icon">🍱</div>
-          <span>Warmly Yours</span>
-        </div>
-      `);
 
       dlBtn.disabled = false;
     }
@@ -479,8 +471,7 @@
       const H_DIV   = 1;
       const QR_SZ   = 200;
       const H_QR    = 32 + QR_SZ + 18 + 28 + 24; // top + qr + gap + pin + bot
-      const H_FOOT  = 54;
-      const H_TOTAL = H_HEAD + H_DIV + H_QR + H_DIV + H_FOOT;
+      const H_TOTAL = H_HEAD + H_DIV + H_QR;
 
       const c   = document.createElement('canvas');
       c.width   = W * S;
@@ -551,27 +542,6 @@
 
       y += H_QR;
 
-      // ── Divider ──
-      ctx.fillStyle = '#e5e7eb';
-      ctx.fillRect(0, y, W, 1);
-      y += H_DIV;
-
-      // ── Footer ──
-      // Orange icon box
-      const grad = ctx.createLinearGradient(20, y+12, 50, y+42);
-      grad.addColorStop(0, '#ff7043');
-      grad.addColorStop(1, '#f57c00');
-      ctx.fillStyle = grad;
-      roundRect(ctx, 20, y + 12, 30, 30, 7);
-      ctx.fill();
-
-      ctx.font = '15px serif';
-      ctx.textAlign = 'left';
-      ctx.fillText('🍱', 23, y + 33);
-
-      ctx.fillStyle = '#111';
-      ctx.font = `500 14px ${FONT}`;
-      ctx.fillText('Warmly Yours', 58, y + 31);
 
       // Save
       const link = document.createElement('a');
