@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QR Generator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f0f0f0;
+      --card: #ffffff;
+      --border: #e4e4e7;
+      --text: #09090b;
+      --muted: #71717a;
+      --accent: #18181b;
+      --accent-hover: #27272a;
+      --blue: #3b82f6;
+      --radius-card: 20px;
+      --radius-input: 10px;
+      --radius-btn: 10px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius-card);
+      padding: 44px 40px 40px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.08);
+    }
+
+    .header { margin-bottom: 32px; }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.3px;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .field { margin-bottom: 28px; }
+
+    label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: 0.1px;
+      margin-bottom: 8px;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 11px 40px 11px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-input);
+      font-size: 15px;
+      color: var(--text);
+      background: #fff;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input[type="text"]::placeholder { color: #a1a1aa; }
+
+    input[type="text"]:focus {
+      border-color: var(--blue);
+    }
+
+    .clear-btn {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #a1a1aa;
+      display: none;
+      padding: 4px;
+      line-height: 0;
+      border-radius: 50%;
+      transition: color 0.1s;
+      width: auto;
+    }
+
+    .clear-btn:hover { color: var(--text); }
+    .clear-btn.visible { display: flex; }
+
+    .qr-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+
+    .qr-frame {
+      width: 220px;
+      height: 220px;
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fafafa;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .qr-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      color: #a1a1aa;
+      user-select: none;
+    }
+
+    .qr-placeholder svg {
+      opacity: 0.4;
+    }
+
+    .qr-placeholder span {
+      font-size: 12px;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    #qr-canvas {
+      display: none;
+      border-radius: 10px;
+    }
+
+    .char-count {
+      margin-top: 10px;
+      font-size: 11.5px;
+      color: var(--muted);
+    }
+
+    .char-count.warn { color: #f59e0b; }
+    .char-count.error { color: #ef4444; }
+
+    .actions { display: flex; flex-direction: column; gap: 10px; }
+
+    .btn-primary {
+      width: 100%;
+      padding: 13px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-btn);
+      font-size: 14.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.15s, transform 0.1s, opacity 0.15s;
+    }
+
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+    .btn-primary:active:not(:disabled) { transform: scale(0.985); }
+    .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 12px;
+      background: transparent;
+      color: var(--text);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-btn);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.12s, border-color 0.12s, transform 0.1s, opacity 0.15s;
+    }
+
+    .btn-secondary:hover:not(:disabled) { background: #f4f4f5; }
+    .btn-secondary:active:not(:disabled) { transform: scale(0.985); }
+    .btn-secondary:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .btn-secondary.copied {
+      color: #16a34a;
+      border-color: #bbf7d0;
+      background: #f0fdf4;
+    }
+
+    .hint {
+      text-align: center;
+      color: #a1a1aa;
+      font-size: 11.5px;
+      margin-top: 18px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <h1>QR Generator</h1>
+      <p class="subtitle">Type anything — get a scannable QR code. Download it as a PNG.</p>
+    </div>
+
+    <div class="field">
+      <label for="text-input">Text</label>
+      <div class="input-wrap">
+        <input
+          id="text-input"
+          type="text"
+          placeholder="Enter text, URL, PIN…"
+          autocomplete="off"
+          spellcheck="false"
+          maxlength="900"
+        />
+        <button class="clear-btn" id="clear-btn" aria-label="Clear text">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="qr-section">
+      <div class="qr-frame">
+        <div class="qr-placeholder" id="qr-placeholder">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <rect x="4" y="4" width="16" height="16" rx="2" stroke="#a1a1aa" stroke-width="2"/>
+            <rect x="8" y="8" width="8" height="8" rx="1" fill="#a1a1aa"/>
+            <rect x="28" y="4" width="16" height="16" rx="2" stroke="#a1a1aa" stroke-width="2"/>
+            <rect x="32" y="8" width="8" height="8" rx="1" fill="#a1a1aa"/>
+            <rect x="4" y="28" width="16" height="16" rx="2" stroke="#a1a1aa" stroke-width="2"/>
+            <rect x="8" y="32" width="8" height="8" rx="1" fill="#a1a1aa"/>
+            <rect x="28" y="28" width="4" height="4" rx="0.5" fill="#a1a1aa"/>
+            <rect x="36" y="28" width="4" height="4" rx="0.5" fill="#a1a1aa"/>
+            <rect x="28" y="36" width="4" height="4" rx="0.5" fill="#a1a1aa"/>
+            <rect x="36" y="36" width="4" height="4" rx="0.5" fill="#a1a1aa"/>
+            <rect x="32" y="32" width="4" height="4" rx="0.5" fill="#a1a1aa"/>
+          </svg>
+          <span>QR code<br>appears here</span>
+        </div>
+        <canvas id="qr-canvas"></canvas>
+      </div>
+      <p class="char-count" id="char-count"></p>
+    </div>
+
+    <div class="actions">
+      <button class="btn-primary" id="download-btn" disabled>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M8 2v8m0 0L5 7m3 3l3-3M2 12h12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Download QR (PNG)
+      </button>
+      <button class="btn-secondary" id="copy-btn" disabled>
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" id="copy-icon">
+          <rect x="5" y="1" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M1 5.5A1.5 1.5 0 012.5 4H4v7.5A1.5 1.5 0 005.5 13H10v1.5A1.5 1.5 0 018.5 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <rect x="1" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+        Copy text
+      </button>
+    </div>
+
+    <p class="hint">Scan with any camera app · scanning shows the encoded text on the phone</p>
+  </div>
+
+  <script src="qrcode.min.js"></script>
+  <script>
+    const textInput   = document.getElementById('text-input');
+    const clearBtn    = document.getElementById('clear-btn');
+    const canvas      = document.getElementById('qr-canvas');
+    const placeholder = document.getElementById('qr-placeholder');
+    const downloadBtn = document.getElementById('download-btn');
+    const copyBtn     = document.getElementById('copy-btn');
+    const charCount   = document.getElementById('char-count');
+
+    let hasQR = false;
+    let debounce;
+
+    function renderQR(text) {
+      if (!text) {
+        canvas.style.display = 'none';
+        placeholder.style.display = '';
+        downloadBtn.disabled = true;
+        copyBtn.disabled = true;
+        charCount.textContent = '';
+        charCount.className = 'char-count';
+        hasQR = false;
+        return;
+      }
+
+      const len = text.length;
+      charCount.textContent = len + ' character' + (len === 1 ? '' : 's');
+      charCount.className = 'char-count' + (len > 700 ? ' warn' : '');
+
+      try {
+        const qr = qrcode(0, 'M');
+        qr.addData(text);
+        qr.make();
+
+        const mods     = qr.getModuleCount();
+        const cell     = 8;
+        const margin   = 4;
+        const dim      = (mods + margin * 2) * cell;
+
+        canvas.width  = dim;
+        canvas.height = dim;
+
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, dim, dim);
+        ctx.fillStyle = '#000000';
+
+        for (let r = 0; r < mods; r++) {
+          for (let c = 0; c < mods; c++) {
+            if (qr.isDark(r, c)) {
+              ctx.fillRect((c + margin) * cell, (r + margin) * cell, cell, cell);
+            }
+          }
+        }
+
+        // Fit inside the 220px frame
+        const fit = Math.min(200, dim);
+        canvas.style.width  = fit + 'px';
+        canvas.style.height = fit + 'px';
+
+        canvas.style.display = 'block';
+        placeholder.style.display = 'none';
+        downloadBtn.disabled = false;
+        copyBtn.disabled = false;
+        hasQR = true;
+      } catch (_) {
+        charCount.textContent = 'Text too long — shorten it a bit';
+        charCount.className = 'char-count error';
+        canvas.style.display = 'none';
+        placeholder.style.display = '';
+        downloadBtn.disabled = true;
+        copyBtn.disabled = true;
+        hasQR = false;
+      }
+    }
+
+    textInput.addEventListener('input', () => {
+      const val = textInput.value;
+      clearBtn.classList.toggle('visible', val.length > 0);
+      clearTimeout(debounce);
+      debounce = setTimeout(() => renderQR(val), 120);
+    });
+
+    clearBtn.addEventListener('click', () => {
+      textInput.value = '';
+      clearBtn.classList.remove('visible');
+      renderQR('');
+      textInput.focus();
+    });
+
+    downloadBtn.addEventListener('click', () => {
+      if (!hasQR) return;
+      const slug = textInput.value.trim().slice(0, 32).replace(/[^a-z0-9]/gi, '_') || 'qrcode';
+      const link = document.createElement('a');
+      link.download = slug + '_qr.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
+
+    copyBtn.addEventListener('click', () => {
+      const text = textInput.value.trim();
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        copyBtn.classList.add('copied');
+        copyBtn.querySelector('svg').innerHTML = '<path d="M2 7l4 4 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>';
+        copyBtn.childNodes[1].textContent = 'Copied!';
+        setTimeout(() => {
+          copyBtn.classList.remove('copied');
+          copyBtn.querySelector('svg').innerHTML = '<rect x="5" y="1" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="1" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/>';
+          copyBtn.childNodes[1].textContent = 'Copy text';
+        }, 2000);
+      });
+    });
+  </script>
+</body>
+</html>
