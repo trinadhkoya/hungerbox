@@ -3,174 +3,282 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Order PIN → QR</title>
+  <title>Order QR Generator</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #f0f0f0;
-      --card: #ffffff;
+      --page-bg: #ebebeb;
+      --card-bg: #fff;
       --border: #e4e4e7;
-      --text: #09090b;
-      --muted: #71717a;
-      --accent: #18181b;
-      --accent-hover: #27272a;
-      --blue: #3b82f6;
-      --radius-card: 20px;
-      --radius-input: 10px;
-      --radius-btn: 10px;
+      --text: #111;
+      --muted: #6b7280;
+      --blue: #1a73e8;
+      --red: #e53935;
+      --orange: #f57c00;
+      --green: #16a34a;
+      --radius: 16px;
     }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      background: var(--bg);
+      background: var(--page-bg);
       min-height: 100vh;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 24px;
+      padding: 28px 16px 40px;
+      gap: 20px;
     }
 
-    .card {
-      background: var(--card);
-      border-radius: var(--radius-card);
-      padding: 44px 40px 40px;
+    /* ── Form card ── */
+    .form-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 22px 20px;
       width: 100%;
-      max-width: 440px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.08);
+      max-width: 420px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07), 0 6px 20px rgba(0,0,0,0.06);
     }
 
-    .header { margin-bottom: 32px; }
-
-    h1 {
-      font-size: 22px;
+    .form-card h1 {
+      font-size: 15px;
       font-weight: 700;
       color: var(--text);
-      letter-spacing: -0.3px;
-      margin-bottom: 4px;
+      margin-bottom: 16px;
+      letter-spacing: -0.1px;
     }
 
-    .subtitle {
-      font-size: 13.5px;
-      color: var(--muted);
-      line-height: 1.5;
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
     }
 
-    .field { margin-bottom: 28px; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group.full { grid-column: span 2; }
 
     label {
-      display: block;
-      font-size: 12.5px;
+      font-size: 11.5px;
       font-weight: 600;
       color: var(--text);
       letter-spacing: 0.1px;
-      margin-bottom: 8px;
     }
 
-    .input-wrap {
-      position: relative;
-    }
-
-    input[type="text"] {
-      width: 100%;
-      padding: 11px 40px 11px 14px;
+    input {
+      padding: 9px 11px;
       border: 1.5px solid var(--border);
-      border-radius: var(--radius-input);
-      font-size: 15px;
+      border-radius: 8px;
+      font-size: 14px;
       color: var(--text);
-      background: #fff;
       outline: none;
       transition: border-color 0.15s;
+      background: #fff;
+      width: 100%;
     }
 
-    input[type="text"]::placeholder { color: #a1a1aa; }
+    input:focus { border-color: var(--blue); }
+    input::placeholder { color: #a1a1aa; }
 
-    input[type="text"]:focus {
-      border-color: var(--blue);
+    .pin-hint {
+      font-size: 11px;
+      color: #f59e0b;
+      min-height: 14px;
+    }
+    .pin-hint.ok { color: var(--green); }
+
+    /* ── HungerBox preview card ── */
+    .preview-label {
+      width: 100%;
+      max-width: 420px;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.9px;
+      padding-left: 2px;
     }
 
-    .clear-btn {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: #a1a1aa;
-      display: none;
-      padding: 4px;
-      line-height: 0;
-      border-radius: 50%;
-      transition: color 0.1s;
-      width: auto;
+    .hb-card {
+      background: #fff;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 420px;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.14);
     }
 
-    .clear-btn:hover { color: var(--text); }
-    .clear-btn.visible { display: flex; }
-
-    .qr-section {
+    /* Header */
+    .hb-header {
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 28px;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 20px 20px 16px;
+      gap: 12px;
     }
 
-    .qr-frame {
-      width: 220px;
-      height: 220px;
-      border: 1.5px solid var(--border);
-      border-radius: 16px;
+    .hb-header h2 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 4px;
+      line-height: 1.2;
+    }
+
+    .hb-header p {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .hb-x {
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+      background: var(--red);
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #fafafa;
-      overflow: hidden;
-      position: relative;
+      margin-top: 2px;
     }
 
-    .qr-placeholder {
+    /* Divider */
+    .hb-divider { height: 1px; background: #e5e7eb; }
+
+    /* QR section */
+    .hb-qr {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
-      color: #a1a1aa;
-      user-select: none;
+      padding: 32px 20px 24px;
+      gap: 18px;
+      background: #fff;
     }
 
-    .qr-placeholder svg {
-      opacity: 0.4;
+    .hb-qr canvas {
+      display: block;
+      image-rendering: pixelated;
     }
 
-    .qr-placeholder span {
-      font-size: 12px;
+    .hb-pin {
+      font-size: 17px;
+      color: #111;
       text-align: center;
-      line-height: 1.5;
+      letter-spacing: 0.1px;
     }
 
-    #qr-canvas {
-      display: none;
-      border-radius: 10px;
+    .hb-pin strong {
+      font-weight: 700;
     }
 
-    .char-count {
-      margin-top: 10px;
-      font-size: 11.5px;
-      color: var(--muted);
+    /* Empty QR placeholder */
+    .hb-qr-placeholder {
+      width: 180px;
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ebebeb;
+      border-radius: 8px;
     }
 
-    .char-count.warn { color: #f59e0b; }
-    .char-count.error { color: #ef4444; }
+    /* Meta section */
+    .hb-meta {
+      padding: 16px 20px 4px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
 
-    .actions { display: flex; flex-direction: column; gap: 10px; }
+    .hb-ref-block strong {
+      display: block;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 3px;
+    }
 
-    .btn-primary {
+    .hb-ref-block span {
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    .hb-kot-block {
+      text-align: right;
+    }
+
+    .hb-kot-block .kot-label {
+      font-size: 11px;
+      color: #6b7280;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .hb-kot-block .kot-num {
+      font-size: 34px;
+      font-weight: 700;
+      color: var(--blue);
+      display: block;
+      line-height: 1;
+    }
+
+    /* Items ready */
+    .hb-items {
+      padding: 10px 20px 18px;
+      font-size: 14px;
+      color: #111;
+    }
+
+    /* Footer */
+    .hb-footer {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 20px;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .hb-footer-icon {
+      width: 30px;
+      height: 30px;
+      background: linear-gradient(135deg, #ff7043, #f57c00);
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    .hb-footer span {
+      font-size: 14px;
+      font-weight: 500;
+      color: #111;
+    }
+
+    /* Empty state inside card */
+    .hb-empty {
+      padding: 48px 20px;
+      text-align: center;
+      color: #a1a1aa;
+    }
+
+    .hb-empty svg { margin-bottom: 12px; opacity: 0.35; }
+    .hb-empty p { font-size: 13px; line-height: 1.5; }
+
+    /* Actions */
+    .actions {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .btn-download {
       width: 100%;
       padding: 13px;
-      background: var(--accent);
+      background: #111;
       color: #fff;
       border: none;
-      border-radius: var(--radius-btn);
+      border-radius: 10px;
       font-size: 14.5px;
       font-weight: 600;
       cursor: pointer;
@@ -181,244 +289,400 @@
       transition: background 0.15s, transform 0.1s, opacity 0.15s;
     }
 
-    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
-    .btn-primary:active:not(:disabled) { transform: scale(0.985); }
-    .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
-
-    .btn-secondary {
-      width: 100%;
-      padding: 12px;
-      background: transparent;
-      color: var(--text);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-btn);
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: background 0.12s, border-color 0.12s, transform 0.1s, opacity 0.15s;
-    }
-
-    .btn-secondary:hover:not(:disabled) { background: #f4f4f5; }
-    .btn-secondary:active:not(:disabled) { transform: scale(0.985); }
-    .btn-secondary:disabled { opacity: 0.35; cursor: not-allowed; }
-
-    .btn-secondary.copied {
-      color: #16a34a;
-      border-color: #bbf7d0;
-      background: #f0fdf4;
-    }
-
-    .hint {
-      text-align: center;
-      color: #a1a1aa;
-      font-size: 11.5px;
-      margin-top: 18px;
-      line-height: 1.6;
-    }
+    .btn-download:hover:not(:disabled) { background: #222; }
+    .btn-download:active:not(:disabled) { transform: scale(0.985); }
+    .btn-download:disabled { opacity: 0.35; cursor: not-allowed; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="header">
-      <h1>Order PIN → QR</h1>
-      <p class="subtitle">Enter a 6-digit Order PIN to generate a scannable QR code.</p>
-    </div>
 
-    <div class="field">
-      <label for="text-input">Order PIN:</label>
-      <div class="input-wrap">
-        <input
-          id="text-input"
-          type="text"
-          inputmode="numeric"
-          pattern="[0-9]*"
-          placeholder="e.g. 123456"
-          autocomplete="off"
-          spellcheck="false"
-          maxlength="6"
-        />
-        <button class="clear-btn" id="clear-btn" aria-label="Clear text">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          </svg>
-        </button>
+  <!-- Form -->
+  <div class="form-card">
+    <h1>Order QR Generator</h1>
+    <div class="form-grid">
+
+      <div class="form-group full">
+        <label>Order PIN</label>
+        <input id="pin" type="text" inputmode="numeric" placeholder="6-digit PIN" maxlength="6" autocomplete="off" />
+        <div class="pin-hint" id="pin-hint"></div>
       </div>
-    </div>
 
-    <div class="qr-section">
-      <div class="qr-frame">
-        <div class="qr-placeholder" id="qr-placeholder">
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-            <rect x="4" y="4" width="16" height="16" rx="2" stroke="#a1a1aa" stroke-width="2"/>
-            <rect x="8" y="8" width="8" height="8" rx="1" fill="#a1a1aa"/>
-            <rect x="28" y="4" width="16" height="16" rx="2" stroke="#a1a1aa" stroke-width="2"/>
-            <rect x="32" y="8" width="8" height="8" rx="1" fill="#a1a1aa"/>
-            <rect x="4" y="28" width="16" height="16" rx="2" stroke="#a1a1aa" stroke-width="2"/>
-            <rect x="8" y="32" width="8" height="8" rx="1" fill="#a1a1aa"/>
-            <rect x="28" y="28" width="4" height="4" rx="0.5" fill="#a1a1aa"/>
-            <rect x="36" y="28" width="4" height="4" rx="0.5" fill="#a1a1aa"/>
-            <rect x="28" y="36" width="4" height="4" rx="0.5" fill="#a1a1aa"/>
-            <rect x="36" y="36" width="4" height="4" rx="0.5" fill="#a1a1aa"/>
-            <rect x="32" y="32" width="4" height="4" rx="0.5" fill="#a1a1aa"/>
-          </svg>
-          <span>QR code<br>appears here</span>
-        </div>
-        <canvas id="qr-canvas"></canvas>
+      <div class="form-group full">
+        <label>Order Ref.</label>
+        <input id="ref" type="text" placeholder="e.g. VVUILCIV28829" autocomplete="off" />
       </div>
-      <p class="char-count" id="char-count"></p>
-    </div>
 
-    <div class="actions">
-      <button class="btn-primary" id="download-btn" disabled>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M8 2v8m0 0L5 7m3 3l3-3M2 12h12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Download QR (PNG)
-      </button>
-      <button class="btn-secondary" id="copy-btn" disabled>
-        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" id="copy-icon">
-          <rect x="5" y="1" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M1 5.5A1.5 1.5 0 012.5 4H4v7.5A1.5 1.5 0 005.5 13H10v1.5A1.5 1.5 0 018.5 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          <rect x="1" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-        </svg>
-        Copy text
-      </button>
-    </div>
+      <div class="form-group">
+        <label>KOT No.</label>
+        <input id="kot" type="text" inputmode="numeric" placeholder="e.g. 373" autocomplete="off" />
+      </div>
 
-    <p class="hint">6 digits only · scan with any camera app to read the PIN</p>
+      <div class="form-group">
+        <label>Items Ready</label>
+        <input id="items" type="text" inputmode="numeric" placeholder="e.g. 1" value="1" autocomplete="off" />
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Preview label -->
+  <div class="preview-label">Preview</div>
+
+  <!-- HungerBox-style card -->
+  <div class="hb-card" id="hb-card">
+    <div class="hb-empty">
+      <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+        <rect x="4" y="4" width="18" height="18" rx="2.5" stroke="#9ca3af" stroke-width="2"/>
+        <rect x="9" y="9" width="8" height="8" rx="1" fill="#9ca3af"/>
+        <rect x="30" y="4" width="18" height="18" rx="2.5" stroke="#9ca3af" stroke-width="2"/>
+        <rect x="35" y="9" width="8" height="8" rx="1" fill="#9ca3af"/>
+        <rect x="4" y="30" width="18" height="18" rx="2.5" stroke="#9ca3af" stroke-width="2"/>
+        <rect x="9" y="35" width="8" height="8" rx="1" fill="#9ca3af"/>
+        <rect x="30" y="30" width="5" height="5" rx="0.5" fill="#9ca3af"/>
+        <rect x="39" y="30" width="5" height="5" rx="0.5" fill="#9ca3af"/>
+        <rect x="30" y="39" width="5" height="5" rx="0.5" fill="#9ca3af"/>
+        <rect x="39" y="39" width="5" height="5" rx="0.5" fill="#9ca3af"/>
+        <rect x="34.5" y="34.5" width="5" height="5" rx="0.5" fill="#9ca3af"/>
+      </svg>
+      <p>Enter a 6-digit PIN to<br>preview the collection card</p>
+    </div>
+  </div>
+
+  <!-- Download -->
+  <div class="actions">
+    <button class="btn-download" id="dl-btn" disabled>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M8 2v8m0 0L5 7m3 3 3-3M2 13h12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Download as PNG
+    </button>
   </div>
 
   <script src="qrcode.min.js"></script>
   <script>
-    const textInput   = document.getElementById('text-input');
-    const clearBtn    = document.getElementById('clear-btn');
-    const canvas      = document.getElementById('qr-canvas');
-    const placeholder = document.getElementById('qr-placeholder');
-    const downloadBtn = document.getElementById('download-btn');
-    const copyBtn     = document.getElementById('copy-btn');
-    const charCount   = document.getElementById('char-count');
+    const pinEl   = document.getElementById('pin');
+    const refEl   = document.getElementById('ref');
+    const kotEl   = document.getElementById('kot');
+    const itemsEl = document.getElementById('items');
+    const hint    = document.getElementById('pin-hint');
+    const card    = document.getElementById('hb-card');
+    const dlBtn   = document.getElementById('dl-btn');
 
-    let hasQR = false;
+    let activeQRCanvas = null;
+    let genTime = '';
     let debounce;
 
-    function renderQR(text) {
-      if (!text) {
-        canvas.style.display = 'none';
-        placeholder.style.display = '';
-        downloadBtn.disabled = true;
-        copyBtn.disabled = true;
-        charCount.textContent = '';
-        charCount.className = 'char-count';
-        hasQR = false;
-        return;
-      }
-
-      const len = text.length;
-
-      if (len < 6) {
-        charCount.textContent = `${len} / 6 digits — enter ${6 - len} more`;
-        charCount.className = 'char-count warn';
-        canvas.style.display = 'none';
-        placeholder.style.display = '';
-        downloadBtn.disabled = true;
-        copyBtn.disabled = true;
-        hasQR = false;
-        return;
-      }
-
-      charCount.textContent = '✓ 6-digit PIN';
-      charCount.className = 'char-count';
-
-      try {
-        const qr = qrcode(0, 'M');
-        qr.addData(text);
-        qr.make();
-
-        const mods     = qr.getModuleCount();
-        const cell     = 8;
-        const margin   = 4;
-        const dim      = (mods + margin * 2) * cell;
-
-        canvas.width  = dim;
-        canvas.height = dim;
-
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, dim, dim);
-        ctx.fillStyle = '#000000';
-
-        for (let r = 0; r < mods; r++) {
-          for (let c = 0; c < mods; c++) {
-            if (qr.isDark(r, c)) {
-              ctx.fillRect((c + margin) * cell, (r + margin) * cell, cell, cell);
-            }
-          }
-        }
-
-        // Fit inside the 220px frame
-        const fit = Math.min(200, dim);
-        canvas.style.width  = fit + 'px';
-        canvas.style.height = fit + 'px';
-
-        canvas.style.display = 'block';
-        placeholder.style.display = 'none';
-        downloadBtn.disabled = false;
-        copyBtn.disabled = false;
-        hasQR = true;
-      } catch (_) {
-        charCount.textContent = 'Text too long — shorten it a bit';
-        charCount.className = 'char-count error';
-        canvas.style.display = 'none';
-        placeholder.style.display = '';
-        downloadBtn.disabled = true;
-        copyBtn.disabled = true;
-        hasQR = false;
-      }
+    function fmt12h() {
+      const d = new Date();
+      let h = d.getHours(), m = d.getMinutes();
+      const ap = h >= 12 ? 'pm' : 'am';
+      h = h % 12 || 12;
+      return `${h}:${String(m).padStart(2,'0')} ${ap}`;
     }
 
-    textInput.addEventListener('input', () => {
-      // Strip non-digits and enforce 6-char max
-      const digits = textInput.value.replace(/\D/g, '').slice(0, 6);
-      if (textInput.value !== digits) textInput.value = digits;
-      clearBtn.classList.toggle('visible', digits.length > 0);
-      clearTimeout(debounce);
-      debounce = setTimeout(() => renderQR(digits), 120);
-    });
+    function buildQRCanvas(text) {
+      const qr = qrcode(0, 'M');
+      qr.addData(text);
+      qr.make();
+      const mods = qr.getModuleCount();
+      const cell = 8, margin = 4;
+      const dim  = (mods + margin * 2) * cell;
+      const c    = document.createElement('canvas');
+      c.width = c.height = dim;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, dim, dim);
+      ctx.fillStyle = '#000';
+      for (let r = 0; r < mods; r++)
+        for (let col = 0; col < mods; col++)
+          if (qr.isDark(r, col))
+            ctx.fillRect((col+margin)*cell, (r+margin)*cell, cell, cell);
+      return c;
+    }
 
-    clearBtn.addEventListener('click', () => {
-      textInput.value = '';
-      clearBtn.classList.remove('visible');
-      renderQR('');
-      textInput.focus();
-    });
+    function refresh() {
+      const pin   = pinEl.value.replace(/\D/g,'').slice(0,6);
+      const ref   = refEl.value.trim().toUpperCase() || '—';
+      const kot   = kotEl.value.trim() || '—';
+      const items = Math.max(1, parseInt(itemsEl.value) || 1);
 
-    downloadBtn.addEventListener('click', () => {
-      if (!hasQR) return;
-      const slug = textInput.value.trim().slice(0, 32).replace(/[^a-z0-9]/gi, '_') || 'qrcode';
+      if (pin.length < 6) {
+        hint.className = 'pin-hint';
+        hint.textContent = pin.length
+          ? `${pin.length} / 6 — ${6 - pin.length} more digit${6-pin.length===1?'':'s'} needed`
+          : '';
+        showEmpty();
+        return;
+      }
+
+      hint.className = 'pin-hint ok';
+      hint.textContent = '✓ Valid PIN';
+      genTime = fmt12h();
+      activeQRCanvas = buildQRCanvas(pin);
+      showCard(pin, ref, kot, items);
+    }
+
+    function showEmpty() {
+      activeQRCanvas = null;
+      dlBtn.disabled = true;
+      card.innerHTML = `
+        <div class="hb-empty">
+          <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+            <rect x="4" y="4" width="18" height="18" rx="2.5" stroke="#9ca3af" stroke-width="2"/>
+            <rect x="9" y="9" width="8" height="8" rx="1" fill="#9ca3af"/>
+            <rect x="30" y="4" width="18" height="18" rx="2.5" stroke="#9ca3af" stroke-width="2"/>
+            <rect x="35" y="9" width="8" height="8" rx="1" fill="#9ca3af"/>
+            <rect x="4" y="30" width="18" height="18" rx="2.5" stroke="#9ca3af" stroke-width="2"/>
+            <rect x="9" y="35" width="8" height="8" rx="1" fill="#9ca3af"/>
+            <rect x="30" y="30" width="5" height="5" rx="0.5" fill="#9ca3af"/>
+            <rect x="39" y="30" width="5" height="5" rx="0.5" fill="#9ca3af"/>
+            <rect x="30" y="39" width="5" height="5" rx="0.5" fill="#9ca3af"/>
+            <rect x="39" y="39" width="5" height="5" rx="0.5" fill="#9ca3af"/>
+            <rect x="34.5" y="34.5" width="5" height="5" rx="0.5" fill="#9ca3af"/>
+          </svg>
+          <p>Enter a 6-digit PIN to<br>preview the collection card</p>
+        </div>`;
+    }
+
+    function showCard(pin, ref, kot, items) {
+      // Resize QR canvas for display
+      activeQRCanvas.style.width  = '180px';
+      activeQRCanvas.style.height = '180px';
+
+      card.innerHTML = '';
+
+      // Header
+      card.insertAdjacentHTML('beforeend', `
+        <div class="hb-header">
+          <div>
+            <h2>To collect, scan QR code</h2>
+            <p>This QR can be used to collect all items.</p>
+          </div>
+          <div class="hb-x">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+              <path d="M1 1l9 9M10 1L1 10" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+        <div class="hb-divider"></div>
+      `);
+
+      // QR section
+      const qrWrap = document.createElement('div');
+      qrWrap.className = 'hb-qr';
+      qrWrap.appendChild(activeQRCanvas);
+      qrWrap.insertAdjacentHTML('beforeend',
+        `<div class="hb-pin">Order Pin: <strong>${pin}</strong></div>`);
+      card.appendChild(qrWrap);
+
+      // Meta + items + footer
+      card.insertAdjacentHTML('beforeend', `
+        <div class="hb-divider"></div>
+        <div class="hb-meta">
+          <div class="hb-ref-block">
+            <strong>Order Ref.: ${ref}</strong>
+            <span>QR generated at: ${genTime}</span>
+          </div>
+          <div class="hb-kot-block">
+            <span class="kot-label">KOT</span>
+            <span class="kot-num">${kot}</span>
+          </div>
+        </div>
+        <div class="hb-items">${items} item${items!==1?'s':''} is ready to be collected!</div>
+        <div class="hb-divider"></div>
+        <div class="hb-footer">
+          <div class="hb-footer-icon">🍱</div>
+          <span>Warmly Yours</span>
+        </div>
+      `);
+
+      dlBtn.disabled = false;
+    }
+
+    // ── Download as PNG ──────────────────────────────────────────────────────
+    dlBtn.addEventListener('click', () => {
+      if (!activeQRCanvas) return;
+
+      const pin   = pinEl.value.replace(/\D/g,'').slice(0,6);
+      const ref   = refEl.value.trim().toUpperCase() || '—';
+      const kot   = kotEl.value.trim() || '—';
+      const items = Math.max(1, parseInt(itemsEl.value) || 1);
+
+      const S = 2; // retina scale
+      const W = 390;
+
+      // Heights of each section
+      const H_HEAD  = 84;
+      const H_DIV   = 1;
+      const QR_SZ   = 200;
+      const H_QR    = 28 + QR_SZ + 18 + 28 + 22; // top + qr + gap + pin + bot
+      const H_META  = 84;
+      const H_ITEMS = 44;
+      const H_FOOT  = 54;
+      const H_TOTAL = H_HEAD + H_DIV + H_QR + H_DIV + H_META + H_ITEMS + H_DIV + H_FOOT;
+
+      const c   = document.createElement('canvas');
+      c.width   = W * S;
+      c.height  = H_TOTAL * S;
+      const ctx = c.getContext('2d');
+      ctx.scale(S, S);
+
+      const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif';
+
+      // White background
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, W, H_TOTAL);
+
+      let y = 0;
+
+      // ── Header ──
+      ctx.fillStyle = '#111';
+      ctx.font = `bold 17px ${FONT}`;
+      ctx.textAlign = 'left';
+      ctx.fillText('To collect, scan QR code', 20, y + 33);
+
+      ctx.fillStyle = '#6b7280';
+      ctx.font = `13px ${FONT}`;
+      ctx.fillText('This QR can be used to collect all items.', 20, y + 55);
+
+      // Red X circle
+      ctx.beginPath();
+      ctx.arc(W - 33, y + 27, 13, 0, Math.PI * 2);
+      ctx.fillStyle = '#e53935';
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(W-39, y+21); ctx.lineTo(W-27, y+33); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(W-27, y+21); ctx.lineTo(W-39, y+33); ctx.stroke();
+
+      y += H_HEAD;
+
+      // ── Divider ──
+      ctx.fillStyle = '#e5e7eb';
+      ctx.fillRect(0, y, W, 1);
+      y += H_DIV;
+
+      // ── QR section (gray bg) ──
+      ctx.fillStyle = '#f9f9f9';
+      ctx.fillRect(0, y, W, H_QR);
+
+      const qrX = (W - QR_SZ) / 2;
+      const qrY = y + 28;
+      ctx.drawImage(activeQRCanvas, qrX, qrY, QR_SZ, QR_SZ);
+
+      // "Order Pin: XXXXXX"
+      const pinLabel = 'Order Pin: ';
+      ctx.font = `15px ${FONT}`;
+      ctx.fillStyle = '#111';
+      ctx.textAlign = 'center';
+      const labelW = ctx.measureText(pinLabel).width;
+      ctx.font = `bold 15px ${FONT}`;
+      const pinW = ctx.measureText(pin).width;
+      const totalW = labelW + pinW;
+      const startX = (W - totalW) / 2;
+      const pinTextY = qrY + QR_SZ + 24;
+      ctx.font = `15px ${FONT}`;
+      ctx.textAlign = 'left';
+      ctx.fillText(pinLabel, startX, pinTextY);
+      ctx.font = `bold 15px ${FONT}`;
+      ctx.fillText(pin, startX + labelW, pinTextY);
+
+      y += H_QR;
+
+      // ── Divider ──
+      ctx.fillStyle = '#e5e7eb';
+      ctx.fillRect(0, y, W, 1);
+      y += H_DIV;
+
+      // ── Meta ──
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, y, W, H_META + H_ITEMS);
+
+      ctx.fillStyle = '#111';
+      ctx.font = `bold 13.5px ${FONT}`;
+      ctx.textAlign = 'left';
+      ctx.fillText(`Order Ref.: ${ref}`, 20, y + 30);
+
+      ctx.fillStyle = '#6b7280';
+      ctx.font = `12px ${FONT}`;
+      ctx.fillText(`QR generated at: ${genTime}`, 20, y + 50);
+
+      // KOT
+      ctx.fillStyle = '#6b7280';
+      ctx.font = `11px ${FONT}`;
+      ctx.textAlign = 'right';
+      ctx.fillText('KOT', W - 20, y + 22);
+
+      ctx.fillStyle = '#1a73e8';
+      ctx.font = `bold 30px ${FONT}`;
+      ctx.textAlign = 'right';
+      ctx.fillText(kot, W - 20, y + 54);
+
+      y += H_META;
+
+      // ── Items ──
+      ctx.fillStyle = '#111';
+      ctx.font = `14px ${FONT}`;
+      ctx.textAlign = 'left';
+      ctx.fillText(`${items} item${items!==1?'s':''} is ready to be collected!`, 20, y + 26);
+
+      y += H_ITEMS;
+
+      // ── Divider ──
+      ctx.fillStyle = '#e5e7eb';
+      ctx.fillRect(0, y, W, 1);
+      y += H_DIV;
+
+      // ── Footer ──
+      // Orange icon box
+      const grad = ctx.createLinearGradient(20, y+12, 50, y+42);
+      grad.addColorStop(0, '#ff7043');
+      grad.addColorStop(1, '#f57c00');
+      ctx.fillStyle = grad;
+      roundRect(ctx, 20, y + 12, 30, 30, 7);
+      ctx.fill();
+
+      ctx.font = '15px serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('🍱', 23, y + 33);
+
+      ctx.fillStyle = '#111';
+      ctx.font = `500 14px ${FONT}`;
+      ctx.fillText('Warmly Yours', 58, y + 31);
+
+      // Save
       const link = document.createElement('a');
-      link.download = slug + '_qr.png';
-      link.href = canvas.toDataURL('image/png');
+      link.download = `order-qr-${pin}.png`;
+      link.href = c.toDataURL('image/png');
       link.click();
     });
 
-    copyBtn.addEventListener('click', () => {
-      const text = textInput.value.trim();
-      if (!text) return;
-      navigator.clipboard.writeText(text).then(() => {
-        copyBtn.classList.add('copied');
-        copyBtn.querySelector('svg').innerHTML = '<path d="M2 7l4 4 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>';
-        copyBtn.childNodes[1].textContent = 'Copied!';
-        setTimeout(() => {
-          copyBtn.classList.remove('copied');
-          copyBtn.querySelector('svg').innerHTML = '<rect x="5" y="1" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="1" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/>';
-          copyBtn.childNodes[1].textContent = 'Copy text';
-        }, 2000);
-      });
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    }
+
+    // ── Event listeners ──────────────────────────────────────────────────────
+    pinEl.addEventListener('input', () => {
+      const d = pinEl.value.replace(/\D/g,'').slice(0,6);
+      if (pinEl.value !== d) pinEl.value = d;
+      clearTimeout(debounce);
+      debounce = setTimeout(refresh, 120);
     });
+
+    [refEl, kotEl, itemsEl].forEach(el =>
+      el.addEventListener('input', () => { clearTimeout(debounce); debounce = setTimeout(refresh, 120); })
+    );
   </script>
 </body>
 </html>
