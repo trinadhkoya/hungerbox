@@ -27,12 +27,70 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      padding: 0;
+      gap: 0;
+    }
+
+    /* ── Navbar ── */
+    .navbar {
+      width: 100%;
+      background: #fff;
+      border-bottom: 1px solid #e9e9e9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 24px;
+      height: 60px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .navbar img {
+      height: 32px;
+      width: auto;
+      display: block;
+    }
+
+    /* ── Page content wrapper ── */
+    .page-content {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       padding: 28px 16px 48px;
       gap: 20px;
+      flex: 1;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      width: 100%;
+      background: #111;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 24px 16px;
+      margin-top: auto;
+    }
+
+    .footer img {
+      height: 24px;
+      width: auto;
+      opacity: 0.85;
+      filter: brightness(0) invert(1);
+    }
+
+    .footer p {
+      font-size: 11.5px;
+      color: #6b7280;
+      text-align: center;
     }
 
     @media (max-width: 480px) {
-      body { padding: 16px 12px 40px; gap: 14px; }
+      .page-content { padding: 16px 12px 40px; gap: 14px; }
 
       .form-card { padding: 18px 16px; border-radius: 14px; }
       .form-card h1 { font-size: 14.5px; }
@@ -332,6 +390,13 @@
 </head>
 <body>
 
+  <!-- Navbar -->
+  <nav class="navbar">
+    <img src="logo.svg" alt="HungerBox" />
+  </nav>
+
+  <div class="page-content">
+
   <!-- Form -->
   <div class="form-card">
     <h1>Order QR Generator</h1>
@@ -379,6 +444,14 @@
       Download as PNG
     </button>
   </div>
+
+  </div><!-- /page-content -->
+
+  <!-- Footer -->
+  <footer class="footer">
+    <img src="logo.svg" alt="HungerBox" />
+    <p>© 2025 EatGood Technologies Pvt. Ltd. · All rights reserved.</p>
+  </footer>
 
   <script src="qrcode.min.js"></script>
   <script>
