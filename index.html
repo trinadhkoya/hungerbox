@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>QR Generator</title>
+  <title>Order PIN → QR</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -224,20 +224,22 @@
 <body>
   <div class="card">
     <div class="header">
-      <h1>QR Generator</h1>
-      <p class="subtitle">Type anything — get a scannable QR code. Download it as a PNG.</p>
+      <h1>Order PIN → QR</h1>
+      <p class="subtitle">Enter a 6-digit Order PIN to generate a scannable QR code.</p>
     </div>
 
     <div class="field">
-      <label for="text-input">Text</label>
+      <label for="text-input">Order PIN:</label>
       <div class="input-wrap">
         <input
           id="text-input"
           type="text"
-          placeholder="Enter text, URL, PIN…"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          placeholder="e.g. 123456"
           autocomplete="off"
           spellcheck="false"
-          maxlength="900"
+          maxlength="6"
         />
         <button class="clear-btn" id="clear-btn" aria-label="Clear text">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -287,7 +289,7 @@
       </button>
     </div>
 
-    <p class="hint">Scan with any camera app · scanning shows the encoded text on the phone</p>
+    <p class="hint">6 digits only · scan with any camera app to read the PIN</p>
   </div>
 
   <script src="qrcode.min.js"></script>
@@ -316,8 +318,20 @@
       }
 
       const len = text.length;
-      charCount.textContent = len + ' character' + (len === 1 ? '' : 's');
-      charCount.className = 'char-count' + (len > 700 ? ' warn' : '');
+
+      if (len < 6) {
+        charCount.textContent = `${len} / 6 digits — enter ${6 - len} more`;
+        charCount.className = 'char-count warn';
+        canvas.style.display = 'none';
+        placeholder.style.display = '';
+        downloadBtn.disabled = true;
+        copyBtn.disabled = true;
+        hasQR = false;
+        return;
+      }
+
+      charCount.textContent = '✓ 6-digit PIN';
+      charCount.className = 'char-count';
 
       try {
         const qr = qrcode(0, 'M');
@@ -367,10 +381,12 @@
     }
 
     textInput.addEventListener('input', () => {
-      const val = textInput.value;
-      clearBtn.classList.toggle('visible', val.length > 0);
+      // Strip non-digits and enforce 6-char max
+      const digits = textInput.value.replace(/\D/g, '').slice(0, 6);
+      if (textInput.value !== digits) textInput.value = digits;
+      clearBtn.classList.toggle('visible', digits.length > 0);
       clearTimeout(debounce);
-      debounce = setTimeout(() => renderQR(val), 120);
+      debounce = setTimeout(() => renderQR(digits), 120);
     });
 
     clearBtn.addEventListener('click', () => {
