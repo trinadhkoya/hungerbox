@@ -445,7 +445,7 @@
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
         <path d="M8 2v8m0 0L5 7m3 3 3-3M2 13h12" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      Download as PNG
+      Save QR to Device
     </button>
   </div>
 
@@ -653,11 +653,28 @@
       y += H_QR;
 
 
-      // Save
-      const link = document.createElement('a');
-      link.download = `order-qr-${pin}.png`;
-      link.href = c.toDataURL('image/png');
-      link.click();
+      // Save — use Web Share API on mobile (iOS Photos support), fallback to download
+      c.toBlob(async (blob) => {
+        const filename = `order-qr-${pin}.png`;
+        const file = new File([blob], filename, { type: 'image/png' });
+
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          // iOS / Android native share sheet → user can Save to Photos
+          try {
+            await navigator.share({ files: [file], title: 'Order QR Code' });
+          } catch (_) {
+            // user dismissed — do nothing
+          }
+        } else {
+          // Desktop fallback
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.download = filename;
+          link.href = url;
+          link.click();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+      }, 'image/png');
     });
 
     function roundRect(ctx, x, y, w, h, r) {
