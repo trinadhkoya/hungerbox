@@ -470,9 +470,17 @@
       return `${h}:${String(m).padStart(2,'0')} ${ap}`;
     }
 
+    // Pick the densest encoding mode the text allows, like the Python qrcode
+    // library does, so both generators emit identical QR matrices.
+    function qrMode(text) {
+      if (/^[0-9]+$/.test(text)) return 'Numeric';
+      if (/^[0-9A-Z $%*+\-.\/:]+$/.test(text)) return 'Alphanumeric';
+      return 'Byte';
+    }
+
     function buildQRCanvas(text) {
       const qr = qrcode(0, 'M');
-      qr.addData(text);
+      qr.addData(text, qrMode(text));
       qr.make();
       const mods = qr.getModuleCount();
       const cell = 8, margin = 4;
@@ -504,9 +512,8 @@
 
       hint.className = 'pin-hint ok';
       hint.textContent = '✓ Valid PIN';
-      // Encode the page URL + PIN so scanning opens this page and auto-downloads
-      const shareURL = `${location.origin}${location.pathname}?pin=${pin}`;
-      activeQRCanvas = buildQRCanvas(shareURL);
+      // Encode the raw PIN — collection scanners validate the PIN itself, not a URL
+      activeQRCanvas = buildQRCanvas(pin);
       showCard(pin);
     }
 
