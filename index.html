@@ -470,8 +470,8 @@
       return `${h}:${String(m).padStart(2,'0')} ${ap}`;
     }
 
-    // Pick the densest encoding mode the text allows, like the Python qrcode
-    // library does, so both generators emit identical QR matrices.
+    // Pick the densest encoding mode the text allows, like the app's
+    // node-qrcode encoder does, so both generators emit identical QR matrices.
     function qrMode(text) {
       if (/^[0-9]+$/.test(text)) return 'Numeric';
       if (/^[0-9A-Z $%*+\-.\/:]+$/.test(text)) return 'Alphanumeric';
