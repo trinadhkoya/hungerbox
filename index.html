@@ -441,7 +441,7 @@
       <div class="form-group">
         <label>What's this order PIN for?</label>
         <select id="counter">
-          <option value="">Select counter (optional)</option>
+          <option value="">Select counter</option>
           <option>BIY Veg - Lunch</option>
           <option>BIY Non Veg - Lunch</option>
           <option>Warmly Yours Veg - Lunch</option>
@@ -471,7 +471,7 @@
         <rect x="39" y="39" width="5" height="5" rx="0.5" fill="#9ca3af"/>
         <rect x="34.5" y="34.5" width="5" height="5" rx="0.5" fill="#9ca3af"/>
       </svg>
-      <p>Enter a 6-digit PIN to<br>preview the collection card</p>
+      <p>Enter a 6-digit PIN and pick a counter<br>to preview the collection card</p>
     </div>
   </div>
 
@@ -571,8 +571,14 @@
         return;
       }
 
-      hint.className = 'pin-hint ok';
-      hint.textContent = '✓ Valid PIN';
+      hint.className = 'pin-hint';
+      hint.textContent = '';
+
+      // Both the PIN and the counter are required before generating
+      if (!counterEl.value) {
+        showEmpty();
+        return;
+      }
       // Encode the raw PIN — collection scanners validate the PIN itself, not a URL
       activeQRCanvas = buildQRCanvas(pin);
       showCard(pin);
@@ -596,7 +602,7 @@
             <rect x="39" y="39" width="5" height="5" rx="0.5" fill="#9ca3af"/>
             <rect x="34.5" y="34.5" width="5" height="5" rx="0.5" fill="#9ca3af"/>
           </svg>
-          <p>Enter a 6-digit PIN to<br>preview the collection card</p>
+          <p>Enter a 6-digit PIN and pick a counter<br>to preview the collection card</p>
         </div>`;
     }
 
@@ -808,9 +814,14 @@
       const pin = params.get('pin');
       if (!pin || !/^\d{6}$/.test(pin)) return;
 
-      // Pre-fill the input and generate the QR
+      // Pre-fill the input; the counter is required before the QR is
+      // generated, so prompt for it instead of auto-downloading blind.
       pinEl.value = pin;
       refresh();
+      if (!counterEl.value) {
+        counterEl.focus();
+        return;
+      }
 
       // Show a banner so the user knows a download is starting
       const banner = document.createElement('div');
