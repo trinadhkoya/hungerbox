@@ -143,7 +143,7 @@
 
     .form-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 2fr;
       gap: 12px;
     }
 
@@ -157,7 +157,7 @@
       letter-spacing: 0.1px;
     }
 
-    input {
+    input, select {
       padding: 9px 11px;
       border: 1.5px solid var(--border);
       border-radius: 8px;
@@ -170,12 +170,22 @@
       width: 100%;
     }
 
-    input:focus { border-color: var(--blue); }
+    input:focus, select:focus { border-color: var(--blue); }
     input::placeholder { color: #a1a1aa; }
+
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' stroke='%236b7280' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 34px;
+      cursor: pointer;
+    }
 
     /* Prevent iOS zoom on focus */
     @media (max-width: 480px) {
-      input { font-size: 16px; }
+      input, select { font-size: 16px; }
     }
 
     .pin-hint {
@@ -268,6 +278,21 @@
     .hb-pin strong {
       font-weight: 700;
     }
+
+    /* Counter badge under the PIN — bowl/plate icon, green veg / red non-veg */
+    .hb-counter {
+      margin-top: -6px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .hb-counter.veg    { background: #ecfdf5; color: #15803d; }
+    .hb-counter.nonveg { background: #fef2f2; color: #dc2626; }
+    .hb-counter svg { flex-shrink: 0; }
 
     /* Empty QR placeholder */
     .hb-qr-placeholder {
@@ -407,10 +432,21 @@
     <p class="tagline">No more struggling to capture or share QR screenshots — just share the PIN and generate it instantly here.</p>
     <div class="form-grid">
 
-      <div class="form-group full">
+      <div class="form-group">
         <label>Order PIN</label>
         <input id="pin" type="text" inputmode="numeric" placeholder="6-digit PIN" maxlength="6" autocomplete="off" />
         <div class="pin-hint" id="pin-hint"></div>
+      </div>
+
+      <div class="form-group">
+        <label>What's this order PIN for?</label>
+        <select id="counter">
+          <option value="">Select counter (optional)</option>
+          <option>BIY Veg - Lunch</option>
+          <option>BIY Non Veg - Lunch</option>
+          <option>Warmly Yours Veg - Lunch</option>
+          <option>Warmly Yours Non Veg - Lunch</option>
+        </select>
       </div>
 
     </div>
@@ -453,10 +489,11 @@
 
   <script src="qrcode.min.js"></script>
   <script>
-    const pinEl   = document.getElementById('pin');
-    const hint    = document.getElementById('pin-hint');
-    const card    = document.getElementById('hb-card');
-    const dlBtn   = document.getElementById('dl-btn');
+    const pinEl     = document.getElementById('pin');
+    const counterEl = document.getElementById('counter');
+    const hint      = document.getElementById('pin-hint');
+    const card      = document.getElementById('hb-card');
+    const dlBtn     = document.getElementById('dl-btn');
 
     let activeQRCanvas = null;
     let genTime = '';
@@ -468,6 +505,30 @@
       const ap = h >= 12 ? 'pm' : 'am';
       h = h % 12 || 12;
       return `${h}:${String(m).padStart(2,'0')} ${ap}`;
+    }
+
+    // Counter metadata: BIY is served in a bowl, Warmly Yours on a plate;
+    // green for veg, red for non-veg (pack-label convention).
+    const COUNTER_META = {
+      'BIY Veg - Lunch':              { icon: 'bowl',  veg: true  },
+      'BIY Non Veg - Lunch':          { icon: 'bowl',  veg: false },
+      'Warmly Yours Veg - Lunch':     { icon: 'plate', veg: true  },
+      'Warmly Yours Non Veg - Lunch': { icon: 'plate', veg: false },
+    };
+
+    // 16x16 stroke icon paths, shared by the DOM preview and the PNG canvas
+    const COUNTER_ICONS = {
+      bowl:  'M2.2 8.2h11.6a5.8 5.8 0 0 1-3.8 5v1.2H6v-1.2a5.8 5.8 0 0 1-3.8-5ZM5.8 2.2v2.4M10.2 2.2v2.4',
+      plate: 'M8 1.8a6.2 6.2 0 1 0 0 12.4 6.2 6.2 0 1 0 0-12.4ZM8 5a3 3 0 1 0 0 6 3 3 0 1 0 0-6Z',
+    };
+
+    function counterBadge(name) {
+      const meta = COUNTER_META[name];
+      if (!meta) return '';
+      return `<div class="hb-counter ${meta.veg ? 'veg' : 'nonveg'}">`
+        + `<svg width="15" height="15" viewBox="0 0 16 16" fill="none">`
+        + `<path d="${COUNTER_ICONS[meta.icon]}" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`
+        + `</svg>${name}</div>`;
     }
 
     // Pick the densest encoding mode the text allows, like the app's
@@ -567,7 +628,8 @@
       qrWrap.className = 'hb-qr';
       qrWrap.appendChild(activeQRCanvas);
       qrWrap.insertAdjacentHTML('beforeend',
-        `<div class="hb-pin">Order Pin: <strong>${pin}</strong></div>`);
+        `<div class="hb-pin">Order Pin: <strong>${pin}</strong></div>`
+        + counterBadge(counterEl.value));
       card.appendChild(qrWrap);
 
 
@@ -579,16 +641,18 @@
       if (!activeQRCanvas) return;
 
       const pin = pinEl.value.replace(/\D/g,'').slice(0,6);
+      const counter = counterEl.value;
 
       const S = 2; // retina scale
       const W = 390;
 
       // Heights of each section
-      const H_HEAD  = 84;
-      const H_DIV   = 1;
-      const QR_SZ   = 200;
-      const H_QR    = 32 + QR_SZ + 18 + 28 + 24; // top + qr + gap + pin + bot
-      const H_TOTAL = H_HEAD + H_DIV + H_QR;
+      const H_HEAD    = 84;
+      const H_DIV     = 1;
+      const QR_SZ     = 200;
+      const H_COUNTER = counter ? 38 : 0;
+      const H_QR      = 32 + QR_SZ + 18 + 28 + H_COUNTER + 24; // top + qr + gap + pin + counter + bot
+      const H_TOTAL   = H_HEAD + H_DIV + H_QR;
 
       const c   = document.createElement('canvas');
       c.width   = W * S;
@@ -657,12 +721,42 @@
       ctx.font = `bold 15px ${FONT}`;
       ctx.fillText(pin, startX + labelW, pinTextY);
 
+      // Counter badge under the PIN — bowl/plate icon, green veg / red non-veg
+      const meta = COUNTER_META[counter];
+      if (meta) {
+        const fg = meta.veg ? '#15803d' : '#dc2626';
+        const bg = meta.veg ? '#ecfdf5' : '#fef2f2';
+        ctx.font = `500 13px ${FONT}`;
+        const textW  = ctx.measureText(counter).width;
+        const iconSz = 15, iconGap = 7, padX = 14, pillH = 28;
+        const pillW  = padX + iconSz + iconGap + textW + padX;
+        const pillX  = (W - pillW) / 2;
+        const pillY  = pinTextY + 11;
+        roundRect(ctx, pillX, pillY, pillW, pillH, pillH / 2);
+        ctx.fillStyle = bg;
+        ctx.fill();
+        ctx.save();
+        ctx.translate(pillX + padX, pillY + (pillH - iconSz) / 2);
+        ctx.scale(iconSz / 16, iconSz / 16);
+        ctx.strokeStyle = fg;
+        ctx.lineWidth = 1.5;
+        ctx.lineCap = ctx.lineJoin = 'round';
+        ctx.stroke(new Path2D(COUNTER_ICONS[meta.icon]));
+        ctx.restore();
+        ctx.fillStyle = fg;
+        ctx.textAlign = 'left';
+        ctx.fillText(counter, pillX + padX + iconSz + iconGap, pillY + 18);
+      }
+
       y += H_QR;
 
 
       // Save — use Web Share API on mobile (iOS Photos support), fallback to download
       c.toBlob(async (blob) => {
-        const filename = `order-qr-${pin}.png`;
+        const slug = counter
+          ? '-' + counter.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+          : '';
+        const filename = `order-qr-${pin}${slug}.png`;
         const file = new File([blob], filename, { type: 'image/png' });
 
         if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -705,6 +799,8 @@
       clearTimeout(debounce);
       debounce = setTimeout(refresh, 120);
     });
+
+    counterEl.addEventListener('change', refresh);
 
     // ── Auto-download when opened via scanned QR (?pin=XXXXXX) ───────────────
     (function handleScanLanding() {
