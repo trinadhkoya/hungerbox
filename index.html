@@ -6,7 +6,7 @@
   <title>Order QR Generator</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@100..1000&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -24,7 +24,7 @@
     }
 
     body {
-      font-family: 'Ubuntu', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      font-family: 'Google Sans Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
       background: var(--page-bg);
       min-height: 100vh;
       display: flex;
@@ -99,14 +99,16 @@
       .form-card h1 { font-size: 14.5px; }
       .tagline { font-size: 12px; }
 
-      .hb-card { border-radius: 16px; }
-      .hb-header { padding: 16px 16px 13px; }
-      .hb-header h2 { font-size: 15.5px; }
-      .hb-header p { font-size: 12.5px; }
+      .hb-card { border-radius: 22px; }
+      .hb-header { padding: 22px 20px 16px; }
+      .hb-header h2 { font-size: 17px; }
+      .hb-header p { font-size: 13px; }
+      .hb-divider { margin: 0 20px; }
 
-      .hb-qr { padding: 24px 16px 20px; gap: 14px; }
-      .hb-qr canvas { width: 160px !important; height: 160px !important; }
-      .hb-pin { font-size: 15px; }
+      .hb-qr { padding: 20px 16px; }
+      .hb-qr canvas { width: 150px !important; height: 150px !important; }
+      .hb-meta { padding: 16px 20px; }
+      .hb-items { padding: 16px 20px 12px; }
 
       .btn-download { font-size: 14px; padding: 12px; }
     }
@@ -162,7 +164,7 @@
       border: 1.5px solid var(--border);
       border-radius: 8px;
       font-size: 14px;
-      font-family: 'Ubuntu', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      font-family: 'Google Sans Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
       color: var(--text);
       outline: none;
       transition: border-color 0.15s;
@@ -208,8 +210,11 @@
     }
 
     .hb-card {
+      --purple: #3a1593;
+      --line: #e6e6f0;
+      font-family: 'Google Sans Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
       background: #fff;
-      border-radius: 20px;
+      border-radius: 28px;
       width: 100%;
       max-width: 420px;
       overflow: hidden;
@@ -221,28 +226,29 @@
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
-      padding: 20px 20px 16px;
+      padding: 28px 24px 18px;
       gap: 12px;
     }
 
     .hb-header h2 {
-      font-size: 17px;
-      font-weight: 700;
-      color: #111;
+      font-size: 18px;
+      font-weight: 400;
+      color: #222;
       margin-bottom: 4px;
-      line-height: 1.2;
+      line-height: 1.25;
     }
 
     .hb-header p {
-      font-size: 13px;
-      color: #6b7280;
+      font-size: 14px;
+      font-weight: 300;
+      color: #6f6f6f;
     }
 
     .hb-x {
       flex-shrink: 0;
-      width: 26px;
-      height: 26px;
-      background: var(--red);
+      width: 28px;
+      height: 28px;
+      background: #f44336;
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -250,16 +256,18 @@
       margin-top: 2px;
     }
 
-    /* Divider */
-    .hb-divider { height: 1px; background: #e5e7eb; }
+    /* Dividers are inset from the card edges */
+    .hb-divider { height: 1px; background: var(--line); margin: 0 24px; }
 
-    /* QR section */
+    /* QR section: tall, QR centred in the open space */
     .hb-qr {
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 32px 20px 24px;
+      justify-content: center;
       gap: 18px;
+      min-height: 300px;
+      padding: 20px;
       background: #fff;
     }
 
@@ -268,115 +276,45 @@
       image-rendering: pixelated;
     }
 
-    .hb-pin {
-      font-size: 17px;
-      color: #111;
-      text-align: center;
-      letter-spacing: 0.1px;
-    }
+    .hb-pin { font-size: 16px; font-weight: 300; color: #333; text-align: center; }
 
-    .hb-pin strong {
-      font-weight: 700;
-    }
-
-    /* Counter badge under the PIN — bowl/plate icon, green veg / red non-veg */
-    .hb-counter {
-      margin-top: -6px;
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      padding: 6px 14px;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 500;
-    }
-    .hb-counter.veg    { background: #ecfdf5; color: #15803d; }
-    .hb-counter.nonveg { background: #fef2f2; color: #dc2626; }
-    .hb-counter svg { flex-shrink: 0; }
-
-    /* Empty QR placeholder */
-    .hb-qr-placeholder {
-      width: 180px;
-      height: 180px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #ebebeb;
-      border-radius: 8px;
-    }
-
-    /* Meta section */
+    /* Order ref (left) and counter (right) */
     .hb-meta {
-      padding: 16px 20px 4px;
+      padding: 18px 24px;
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
     }
 
     .hb-ref-block strong {
       display: block;
-      font-size: 13.5px;
-      font-weight: 700;
-      color: #111;
+      font-size: 16px;
+      font-weight: 500;
+      color: #222;
       margin-bottom: 3px;
     }
 
     .hb-ref-block span {
-      font-size: 12px;
-      color: #6b7280;
+      font-size: 14px;
+      font-weight: 300;
+      color: #444;
     }
 
-    .hb-kot-block {
-      text-align: right;
-    }
+    .hb-ref-block .ref-val.veg    { font-size: inherit; font-weight: inherit; color: #15803d; }
+    .hb-ref-block .ref-val.nonveg { font-size: inherit; font-weight: inherit; color: #dc2626; }
 
-    .hb-kot-block .kot-label {
-      font-size: 11px;
-      color: #6b7280;
-      display: block;
-      margin-bottom: 2px;
-    }
+    .hb-kot-block { text-align: right; margin-left: auto; }
+    .hb-kot-block .kot-label { display: block; font-size: 15px; font-weight: 300; color: #444; margin-bottom: 2px; }
+    .hb-kot-block .kot-num   { display: block; font-size: 20px; font-weight: 500; color: var(--purple); line-height: 1; }
 
-    .hb-kot-block .kot-num {
-      font-size: 34px;
-      font-weight: 700;
-      color: var(--blue);
-      display: block;
-      line-height: 1;
-    }
-
-    /* Items ready */
+    /* Ready line */
     .hb-items {
-      padding: 10px 20px 18px;
-      font-size: 14px;
-      color: #111;
-    }
-
-    /* Footer */
-    .hb-footer {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 13px 20px;
-      border-top: 1px solid #e5e7eb;
-    }
-
-    .hb-footer-icon {
-      width: 30px;
-      height: 30px;
-      background: linear-gradient(135deg, #ff7043, #f57c00);
-      border-radius: 7px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 15px;
-      flex-shrink: 0;
-    }
-
-    .hb-footer span {
-      font-size: 14px;
-      font-weight: 500;
-      color: #111;
+      padding: 18px 24px 14px;
+      font-size: 17px;
+      font-weight: 300;
+      color: #222;
     }
 
     /* Empty state inside card */
@@ -497,6 +435,7 @@
 
     let activeQRCanvas = null;
     let genTime = '';
+    let kot = '', kotPin = '';   // random 3-digit KOT, kept stable per PIN
     let debounce;
 
     function fmt12h() {
@@ -507,29 +446,17 @@
       return `${h}:${String(m).padStart(2,'0')} ${ap}`;
     }
 
-    // Counter metadata: BIY is served in a bowl, Warmly Yours on a plate;
-    // green for veg, red for non-veg (pack-label convention).
+    // Counter metadata: green for veg, red for non-veg (pack-label convention)
     const COUNTER_META = {
-      'BIY Veg':              { icon: 'bowl',  veg: true  },
-      'BIY Non Veg':          { icon: 'bowl',  veg: false },
-      'Warmly Yours Veg':     { icon: 'plate', veg: true  },
-      'Warmly Yours Non Veg': { icon: 'plate', veg: false },
+      'BIY Veg':              { veg: true,  ref: 'BIY-VEG'   },
+      'BIY Non Veg':          { veg: false, ref: 'BIY-NONVEG' },
+      'Warmly Yours Veg':     { veg: true,  ref: 'WY-VEG'    },
+      'Warmly Yours Non Veg': { veg: false, ref: 'WY-NONVEG' },
     };
+    const VEG_GREEN = '#15803d', NONVEG_RED = '#dc2626';
 
-    // 16x16 stroke icon paths, shared by the DOM preview and the PNG canvas
-    const COUNTER_ICONS = {
-      bowl:  'M2.2 8.2h11.6a5.8 5.8 0 0 1-3.8 5v1.2H6v-1.2a5.8 5.8 0 0 1-3.8-5ZM5.8 2.2v2.4M10.2 2.2v2.4',
-      plate: 'M8 1.8a6.2 6.2 0 1 0 0 12.4 6.2 6.2 0 1 0 0-12.4ZM8 5a3 3 0 1 0 0 6 3 3 0 1 0 0-6Z',
-    };
-
-    function counterBadge(name) {
-      const meta = COUNTER_META[name];
-      if (!meta) return '';
-      return `<div class="hb-counter ${meta.veg ? 'veg' : 'nonveg'}">`
-        + `<svg width="15" height="15" viewBox="0 0 16 16" fill="none">`
-        + `<path d="${COUNTER_ICONS[meta.icon]}" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`
-        + `</svg>${name}</div>`;
-    }
+    // Short Order Ref for a counter, e.g. "Warmly Yours Non Veg" -> "WYNONVEG"
+    const orderRef = (name) => COUNTER_META[name].ref;
 
     // Pick the densest encoding mode the text allows, like the app's
     // node-qrcode encoder does, so both generators emit identical QR matrices.
@@ -581,6 +508,8 @@
       }
       // Encode the raw PIN — collection scanners validate the PIN itself, not a URL
       activeQRCanvas = buildQRCanvas(pin);
+      genTime = fmt12h();
+      if (kotPin !== pin) { kotPin = pin; kot = String(100 + Math.floor(Math.random() * 900)); }
       showCard(pin);
     }
 
@@ -608,8 +537,8 @@
 
     function showCard(pin) {
       // Resize QR canvas for display
-      activeQRCanvas.style.width  = '180px';
-      activeQRCanvas.style.height = '180px';
+      activeQRCanvas.style.width  = '160px';
+      activeQRCanvas.style.height = '160px';
 
       card.innerHTML = '';
 
@@ -617,7 +546,7 @@
       card.insertAdjacentHTML('beforeend', `
         <div class="hb-header">
           <div>
-            <h2>To collect, scan QR code</h2>
+            <h2>To collect, Scan QR code</h2>
             <p>This QR can be used to collect all items.</p>
           </div>
           <div class="hb-x">
@@ -633,32 +562,52 @@
       const qrWrap = document.createElement('div');
       qrWrap.className = 'hb-qr';
       qrWrap.appendChild(activeQRCanvas);
-      qrWrap.insertAdjacentHTML('beforeend',
-        `<div class="hb-pin">Order Pin: <strong>${pin}</strong></div>`
-        + counterBadge(counterEl.value));
+      qrWrap.insertAdjacentHTML('beforeend', `<div class="hb-pin">Order PIN: ${pin}</div>`);
       card.appendChild(qrWrap);
 
+      // Order pin + time (left), counter (right), ready line
+      card.insertAdjacentHTML('beforeend', `
+        <div class="hb-divider"></div>
+        <div class="hb-meta">
+          <div class="hb-ref-block">
+            <strong>Order Ref.: <span class="ref-val ${COUNTER_META[counterEl.value].veg ? 'veg' : 'nonveg'}">${orderRef(counterEl.value)}</span></strong>
+            <span>QR generated at: ${genTime}</span>
+          </div>
+          <div class="hb-kot-block">
+            <span class="kot-label">KOT</span>
+            <span class="kot-num">${kot}</span>
+          </div>
+        </div>
+        <div class="hb-divider"></div>
+        <div class="hb-items">Your order is ready to be collected!</div>
+      `);
 
       dlBtn.disabled = false;
     }
 
     // ── Download as PNG ──────────────────────────────────────────────────────
-    dlBtn.addEventListener('click', () => {
+    dlBtn.addEventListener('click', async () => {
       if (!activeQRCanvas) return;
+
+      // Canvas text needs the web font loaded before it is drawn
+      try {
+        await Promise.all(['300 14px', '300 16px', '400 18px', '500 16px', '500 20px'].map(f => document.fonts.load(`${f} "Google Sans Flex"`)));
+      } catch (_) {}
 
       const pin = pinEl.value.replace(/\D/g,'').slice(0,6);
       const counter = counterEl.value;
 
       const S = 2; // retina scale
       const W = 390;
+      const PAD = 24;
 
-      // Heights of each section
-      const H_HEAD    = 84;
-      const H_DIV     = 1;
-      const QR_SZ     = 200;
-      const H_COUNTER = counter ? 38 : 0;
-      const H_QR      = 32 + QR_SZ + 18 + 28 + H_COUNTER + 24; // top + qr + gap + pin + counter + bot
-      const H_TOTAL   = H_HEAD + H_DIV + H_QR;
+      // Heights of each section (mirrors the on-screen card)
+      const H_HEAD  = 88;
+      const H_QR    = 300;
+      const QR_SZ   = 160;
+      const H_META  = 84;
+      const H_ITEMS = 76;
+      const H_TOTAL = H_HEAD + 1 + H_QR + 1 + H_META + 1 + H_ITEMS;
 
       const c   = document.createElement('canvas');
       c.width   = W * S;
@@ -666,7 +615,9 @@
       const ctx = c.getContext('2d');
       ctx.scale(S, S);
 
-      const FONT = 'Ubuntu, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif';
+      const FONT = '"Google Sans Flex", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif';
+      const LINE = '#e6e6f0';
+      const divider = (yy) => { ctx.fillStyle = LINE; ctx.fillRect(PAD, yy, W - PAD * 2, 1); };
 
       // White background
       ctx.fillStyle = '#fff';
@@ -675,87 +626,74 @@
       let y = 0;
 
       // ── Header ──
-      ctx.fillStyle = '#111';
-      ctx.font = `bold 17px ${FONT}`;
       ctx.textAlign = 'left';
-      ctx.fillText('To collect, scan QR code', 20, y + 33);
+      ctx.fillStyle = '#222';
+      ctx.font = `400 18px ${FONT}`;
+      ctx.fillText('To collect, Scan QR code', PAD, y + 42);
 
-      ctx.fillStyle = '#6b7280';
-      ctx.font = `13px ${FONT}`;
-      ctx.fillText('This QR can be used to collect all items.', 20, y + 55);
+      ctx.fillStyle = '#6f6f6f';
+      ctx.font = `300 14px ${FONT}`;
+      ctx.fillText('This QR can be used to collect all items.', PAD, y + 64);
 
       // Red X circle
+      const xc = W - PAD - 14, yc = y + 34;
       ctx.beginPath();
-      ctx.arc(W - 33, y + 27, 13, 0, Math.PI * 2);
-      ctx.fillStyle = '#e53935';
+      ctx.arc(xc, yc, 14, 0, Math.PI * 2);
+      ctx.fillStyle = '#f44336';
       ctx.fill();
       ctx.strokeStyle = '#fff';
       ctx.lineWidth = 2;
       ctx.lineCap = 'round';
-      ctx.beginPath(); ctx.moveTo(W-39, y+21); ctx.lineTo(W-27, y+33); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(W-27, y+21); ctx.lineTo(W-39, y+33); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(xc - 5, yc - 5); ctx.lineTo(xc + 5, yc + 5); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(xc + 5, yc - 5); ctx.lineTo(xc - 5, yc + 5); ctx.stroke();
 
       y += H_HEAD;
+      divider(y);
+      y += 1;
 
-      // ── Divider ──
-      ctx.fillStyle = '#e5e7eb';
-      ctx.fillRect(0, y, W, 1);
-      y += H_DIV;
-
-      // ── QR section (gray bg) ──
-      ctx.fillStyle = '#f9f9f9';
-      ctx.fillRect(0, y, W, H_QR);
-
-      const qrX = (W - QR_SZ) / 2;
-      const qrY = y + 28;
-      ctx.drawImage(activeQRCanvas, qrX, qrY, QR_SZ, QR_SZ);
-
-      // "Order Pin: XXXXXX"
-      const pinLabel = 'Order Pin: ';
-      ctx.font = `15px ${FONT}`;
-      ctx.fillStyle = '#111';
+      // ── QR section ──
+      // QR + "Order PIN" label, centred together as one block
+      const PIN_GAP = 18, PIN_H = 16;
+      const blockH = QR_SZ + PIN_GAP + PIN_H;
+      const qrTop  = y + (H_QR - blockH) / 2;
+      ctx.drawImage(activeQRCanvas, (W - QR_SZ) / 2, qrTop, QR_SZ, QR_SZ);
       ctx.textAlign = 'center';
-      const labelW = ctx.measureText(pinLabel).width;
-      ctx.font = `bold 15px ${FONT}`;
-      const pinW = ctx.measureText(pin).width;
-      const totalW = labelW + pinW;
-      const startX = (W - totalW) / 2;
-      const pinTextY = qrY + QR_SZ + 24;
-      ctx.font = `15px ${FONT}`;
-      ctx.textAlign = 'left';
-      ctx.fillText(pinLabel, startX, pinTextY);
-      ctx.font = `bold 15px ${FONT}`;
-      ctx.fillText(pin, startX + labelW, pinTextY);
-
-      // Counter badge under the PIN — bowl/plate icon, green veg / red non-veg
-      const meta = COUNTER_META[counter];
-      if (meta) {
-        const fg = meta.veg ? '#15803d' : '#dc2626';
-        const bg = meta.veg ? '#ecfdf5' : '#fef2f2';
-        ctx.font = `500 13px ${FONT}`;
-        const textW  = ctx.measureText(counter).width;
-        const iconSz = 15, iconGap = 7, padX = 14, pillH = 28;
-        const pillW  = padX + iconSz + iconGap + textW + padX;
-        const pillX  = (W - pillW) / 2;
-        const pillY  = pinTextY + 11;
-        roundRect(ctx, pillX, pillY, pillW, pillH, pillH / 2);
-        ctx.fillStyle = bg;
-        ctx.fill();
-        ctx.save();
-        ctx.translate(pillX + padX, pillY + (pillH - iconSz) / 2);
-        ctx.scale(iconSz / 16, iconSz / 16);
-        ctx.strokeStyle = fg;
-        ctx.lineWidth = 1.5;
-        ctx.lineCap = ctx.lineJoin = 'round';
-        ctx.stroke(new Path2D(COUNTER_ICONS[meta.icon]));
-        ctx.restore();
-        ctx.fillStyle = fg;
-        ctx.textAlign = 'left';
-        ctx.fillText(counter, pillX + padX + iconSz + iconGap, pillY + 18);
-      }
-
+      ctx.fillStyle = '#333';
+      ctx.font = `300 16px ${FONT}`;
+      ctx.fillText(`Order PIN: ${pin}`, W / 2, qrTop + QR_SZ + PIN_GAP + 13);
       y += H_QR;
+      divider(y);
+      y += 1;
 
+      // ── Meta: order ref (green veg / red non-veg) + time ──
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#222';
+      ctx.font = `500 16px ${FONT}`;
+      const refLabel = 'Order Ref.: ';
+      ctx.fillText(refLabel, PAD, y + 36);
+      ctx.fillStyle = COUNTER_META[counter].veg ? VEG_GREEN : NONVEG_RED;
+      ctx.fillText(orderRef(counter), PAD + ctx.measureText(refLabel).width, y + 36);
+      ctx.fillStyle = '#444';
+      ctx.font = `300 14px ${FONT}`;
+      ctx.fillText(`QR generated at: ${genTime}`, PAD, y + 58);
+
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#444';
+      ctx.font = `300 15px ${FONT}`;
+      ctx.fillText('KOT', W - PAD, y + 30);
+      ctx.fillStyle = '#3a1593';
+      ctx.font = `500 20px ${FONT}`;
+      ctx.fillText(kot, W - PAD, y + 56);
+
+      y += H_META;
+      divider(y);
+      y += 1;
+
+      // ── Ready line ──
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#222';
+      ctx.font = `300 17px ${FONT}`;
+      ctx.fillText('Your order is ready to be collected!', PAD, y + 40);
 
       // Save — use Web Share API on mobile (iOS Photos support), fallback to download
       c.toBlob(async (blob) => {
@@ -829,7 +767,7 @@
       banner.style.cssText = `
         position:fixed; top:60px; left:0; right:0; z-index:99;
         background:#3a1593; color:#fff;
-        font-family:'Ubuntu',sans-serif; font-size:13.5px;
+        font-family:'Google Sans Flex',sans-serif; font-size:13.5px;
         display:flex; align-items:center; justify-content:center; gap:10px;
         padding:11px 16px; text-align:center;
       `;
